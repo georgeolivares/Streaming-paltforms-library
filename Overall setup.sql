@@ -50,3 +50,15 @@ GO
 Alter table [dbo].[hulu_titles]
 ADD Primary Key ([show_id])
 GO
+
+
+--This is how we create a relationship between a primary key and a foreign key.
+--We have to create an alias for the foreign key. In this case, it is "show_id_fk"
+ALTER TABLE [dbo].[disney_plus_titles]
+ADD CONSTRAINT show_id_fk
+    FOREIGN KEY ([show_id])
+    REFERENCES [dbo].[netflix_titles] ([show_id]);
+GO
+
+
+
