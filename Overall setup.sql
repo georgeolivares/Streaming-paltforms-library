@@ -52,13 +52,48 @@ ADD Primary Key ([show_id])
 GO
 
 
---This is how we create a relationship between a primary key and a foreign key.
---We have to create an alias for the foreign key. In this case, it is "show_id_fk"
-ALTER TABLE [dbo].[disney_plus_titles]
-ADD CONSTRAINT show_id_fk
-    FOREIGN KEY ([show_id])
-    REFERENCES [dbo].[netflix_titles] ([show_id]);
+--DO WE HAVE ANY REPEATED TITLES IN BETWEEN PLATFORMS?
+
+SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles WHERE dbo.netflix_titles.title
+IN (SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles)
+GO -- YES, WE DO HAVE REPEATED TITLES IN THE PLATFORMS
+
+
+
+--I WANT TO MAKE AN INDEX OF THE DIFFERENT TITLES AND THE PLATFORMS WHERE THEY ARE PRESENT
+
+--We create a dummy table to join the distinct titles from the different streaming platforms
+
+WITH TitlesDummy AS (
+	SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles 
+	UNION
+	SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles
+	UNION
+	SELECT DISTINCT(dbo.disney_plus_titles.title) FROM dbo.disney_plus_titles
+	UNION
+	SELECT DISTINCT(dbo.hulu_titles.title) FROM dbo.hulu_titles
+	)
+SELECT COUNT(*) FROM TitlesDummy
 GO
 
+--We create the new table to insert the info into
 
+CREATE TABLE Titles(
+	title VARCHAR(50))
+GO
 
+--We insert the data
+WITH TitlesDummy AS (
+	SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles 
+	UNION
+	SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles
+	UNION
+	SELECT DISTINCT(dbo.disney_plus_titles.title) FROM dbo.disney_plus_titles
+	UNION
+	SELECT DISTINCT(dbo.hulu_titles.title) FROM dbo.hulu_titles
+	)
+INSERT INTO Titles
+SELECT * FROM TitlesDummy
+GO
+
+SELECT * FROM Titles
