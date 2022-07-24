@@ -56,33 +56,18 @@ GO
 
 SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles WHERE dbo.netflix_titles.title
 IN (SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles)
-GO -- YES, WE DO HAVE REPEATED TITLES IN THE PLATFORMS
-
-
-
---I WANT TO MAKE AN INDEX OF THE DIFFERENT TITLES AND THE PLATFORMS WHERE THEY ARE PRESENT
-
---We create a dummy table to join the distinct titles from the different streaming platforms
-
-WITH TitlesDummy AS (
-	SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles 
-	UNION
-	SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles
-	UNION
-	SELECT DISTINCT(dbo.disney_plus_titles.title) FROM dbo.disney_plus_titles
-	UNION
-	SELECT DISTINCT(dbo.hulu_titles.title) FROM dbo.hulu_titles
-	)
-SELECT COUNT(*) FROM TitlesDummy
+-- YES, WE DO HAVE REPEATED TITLES IN THE PLATFORMS
 GO
 
---We create the new table to insert the info into
 
-CREATE TABLE Titles(
+
+--I WANT TO MAKE AN INDEX OF THE DIFFERENT TITLES AND THE PLATFORMS WHERE THEY ARE PRESENT 
+--We create the new table to insert the info into
+CREATE TABLE AllTitles(
 	title VARCHAR(50))
 GO
 
---We insert the data
+--COUNT RECORDS IN COMBINED TABLES
 WITH TitlesDummy AS (
 	SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles 
 	UNION
@@ -92,8 +77,47 @@ WITH TitlesDummy AS (
 	UNION
 	SELECT DISTINCT(dbo.hulu_titles.title) FROM dbo.hulu_titles
 	)
-INSERT INTO Titles
-SELECT * FROM TitlesDummy
+SELECT COUNT(*) FROM TitlesDummy -- 22,036
 GO
 
-SELECT * FROM Titles
+
+--SAME AMOUNT OF RECORDS IF WE USE DISTINCT? JUST TO MAKE SURE WE HAVE NO REPEATED RECORDS
+WITH TitlesDummy AS (
+	SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles 
+	UNION
+	SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles
+	UNION
+	SELECT DISTINCT(dbo.disney_plus_titles.title) FROM dbo.disney_plus_titles
+	UNION
+	SELECT DISTINCT(dbo.hulu_titles.title) FROM dbo.hulu_titles
+	)
+SELECT COUNT(DISTINCT(TitlesDummy.title)) FROM TitlesDummy -- 
+GO
+
+
+--CLEAN TITLES TABLE
+TRUNCATE TABLE dbo.AllTitles
+GO
+
+
+--INSERT COMBINED TITLE TABLES INTO 'TITLES'
+WITH TitlesDummy AS (
+	SELECT DISTINCT(dbo.netflix_titles.title) FROM dbo.netflix_titles 
+	UNION
+	SELECT DISTINCT(dbo.amazon_prime_titles.title) FROM dbo.amazon_prime_titles
+	UNION
+	SELECT DISTINCT(dbo.disney_plus_titles.title) FROM dbo.disney_plus_titles
+	UNION
+	SELECT DISTINCT(dbo.hulu_titles.title) FROM dbo.hulu_titles
+	)
+INSERT INTO AllTitles
+--USING THE TOP FUNCTION ACTUALLY KEEPS THE TABLE ORDERED AND MAINTAINS IT ORDERED IN THE NEW TABLE
+SELECT TOP(500000) * FROM TitlesDummy ORDER BY title
+GO
+
+
+SELECT * FROM AllTitles
+GO
+
+
+
