@@ -135,6 +135,24 @@ ADD Primary Key ([CustomID])
 GO
 
 
+--STEPS TO REARRANGE COLUMNS IN A TABLE
+SELECT * INTO AllTitlesDummyTable
+FROM AllTitles
+GO
+
+SELECT * FROM AllTitlesDummyTable
+GO
+
+DROP TABLE AllTitles
+GO
+
+SELECT TOP(50000) IntId, CustomID, title INTO AllTitles
+FROM AllTitlesDummyTable ORDER BY title
+GO
+
+DROP TABLE AllTitlesDummyTable
+GO
+
 SELECT * FROM AllTitles
 GO
 
